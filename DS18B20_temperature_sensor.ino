@@ -1,10 +1,9 @@
-//Code that locates the addresses of different One Wire, DS18b20 temperature sensors, prints the address IDs and counts the number of devices connected to the same digital pin
-
+//Code that reads temperature from several DS18b20 devices over a shared digital pin (OneWire)
 
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
-// Data wire is plugged into digital pin 23 on your microcontroller (you can use digital pin)
+
 #define ONE_WIRE_BUS 23
 
 // Setup a oneWire instance to communicate with any OneWire devices
@@ -24,37 +23,35 @@ void setup(void) {
 
   // Start up the library
   sensors.begin();
-
-  // locate devices on the bus
-  Serial.println("Locating devices...");
-  Serial.print("Found ");
-  deviceCount = sensors.getDeviceCount();
-  Serial.print(deviceCount, DEC);
-  Serial.println(" devices.");
-  Serial.println("");
-
-  Serial.println("Printing addresses...");
-  for (int i = 0; i < deviceCount; i++) {
-    Serial.print("Sensor ");
-    Serial.print(i + 1);
-    Serial.print(" : ");
-    sensors.getAddress(Thermometer, i);
-    printAddress(Thermometer);
-  }
 }
+
+//copy your unique addresses here --add as many as you have
+DeviceAddress sensor1 = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+DeviceAddress sensor2 = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
 void loop(void) {
+  // Command all sensors on the bus to take a reading
+  sensors.requestTemperatures();
 
-}
+  // Read specifically by the unique address
+  float temp1 = sensors.getTempC(sensor1);
+  float temp2 = sensors.getTempC(sensor2);
 
-void printAddress(DeviceAddress deviceAddress) {
-  for (uint8_t i = 0; i < 8; i++) {
-    Serial.print("0x");
-    if (deviceAddress[i] < 0x10) Serial.print("0");
-    Serial.print(deviceAddress[i], HEX);
-    if (i < 7) Serial.print(", ");
+  // Check if sensor is actually connected
+  if (temp1 == DEVICE_DISCONNECTED_C) {
+    Serial.println("Error: Sensor 1 not found!");
+  } else {
+    Serial.print("Sensor 1: ");
+    Serial.print(temp1);
+    Serial.println(" °C");
   }
-  Serial.println("");
+  if (temp2 == DEVICE_DISCONNECTED_C) {
+    Serial.println("Error: Sensor 2 not found!");
+  } else {
+    Serial.print("Sensor 2: ");
+    Serial.print(temp2);
+    Serial.println(" °C");
+  }
+
+  delay(2000);
 }
-
-
-
